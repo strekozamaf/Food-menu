@@ -2,116 +2,160 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Food App</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Food Master</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         :root {
-            --tg-theme-bg-color: #ffffff;
-            --tg-theme-text-color: #000000;
-            --tg-theme-button-color: #2481cc;
-            --tg-theme-button-text-color: #ffffff;
-            --tg-theme-hint-color: #999999;
+            --bg: var(--tg-theme-bg-color, #ffffff);
+            --text: var(--tg-theme-text-color, #000000);
+            --hint: var(--tg-theme-hint-color, #999999);
+            --btn: var(--tg-theme-button-color, #2481cc);
+            --btn-text: var(--tg-theme-button-text-color, #ffffff);
         }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            background-color: var(--tg-theme-bg-color);
-            color: var(--tg-theme-text-color);
-            margin: 0;
-            padding: 20px;
+            font-family: sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            margin: 0; padding: 15px;
+            user-select: none;
         }
 
         .page { display: none; }
         .page.active { display: block; }
 
-        /* Главная страница - Сетка кнопок */
+        /* Сетка меню */
         .menu-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 15px;
+            display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 20px;
         }
 
         .menu-item {
-            background: #f0f0f0;
-            padding: 20px;
-            border-radius: 15px;
-            text-align: center;
-            cursor: pointer;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            background: rgba(0,0,0,0.05);
+            padding: 30px 10px; border-radius: 20px;
+            text-align: center; cursor: pointer;
+            border: 1px solid rgba(0,0,0,0.1);
         }
 
-        .menu-item i { font-size: 30px; display: block; margin-bottom: 10px; }
+        /* Поля ввода */
+        input {
+            width: 100%; padding: 10px; margin: 5px 0;
+            border-radius: 10px; border: 1px solid var(--hint);
+            box-sizing: border-box;
+            background: var(--bg); color: var(--text);
+        }
 
-        /* Списки */
+        .main-btn {
+            background: var(--btn); color: var(--btn-text);
+            border: none; width: 100%; padding: 12px;
+            border-radius: 10px; font-weight: bold; margin-top: 10px;
+        }
+
         .list-item {
-            border-bottom: 1px solid var(--tg-theme-hint-color);
-            padding: 10px 0;
-            display: flex;
-            justify-content: space-between;
+            display: flex; justify-content: space-between;
+            padding: 12px; border-bottom: 1px solid rgba(0,0,0,0.1);
+            align-items: center;
         }
 
-        .back-btn {
-            background: var(--tg-theme-button-color);
-            color: var(--tg-theme-button-text-color);
-            border: none;
-            padding: 10px 20px;
-            border-radius: 8px;
-            margin-bottom: 20px;
-            cursor: pointer;
-        }
-
-        h2 { margin-top: 0; }
+        .delete-btn { color: #ff4444; font-size: 12px; cursor: pointer; }
     </style>
 </head>
 <body>
 
     <div id="home" class="page active">
-        <h2>Мой Помощник</h2>
+        <h2 style="text-align: center;">🍎 Food Helper</h2>
         <div class="menu-grid">
-            <div class="menu-item" onclick="showPage('products')">🍎<br>Продукты</div>
-            <div class="menu-item" onclick="showPage('recipes')">📖<br>Рецепты</div>
-            <div class="menu-item" onclick="showPage('shopping')">🛒<br>Покупки</div>
-            <div class="menu-item" onclick="tg.close()">❌<br>Выход</div>
+            <div class="menu-item" onclick="showPage('products')">🛒<br>Продукты</div>
+            <div class="menu-item" onclick="showPage('recipes')">🍳<br>Рецепты</div>
+            <div class="menu-item" onclick="showPage('shopping')">📝<br>Покупки</div>
+            <div class="menu-item" onclick="tg.close()">🚪<br>Выход</div>
         </div>
     </div>
 
     <div id="products" class="page">
-        <button class="back-btn" onclick="showPage('home')">← Назад</button>
-        <h2>Продукты</h2>
-        <div class="list-item"><span>Куриная грудка</span> <span>113 ккал | 350₽</span></div>
-        <div class="list-item"><span>Гречка (100г)</span> <span>330 ккал | 90₽</span></div>
-        <div class="list-item"><span>Авокадо</span> <span>160 ккал | 120₽</span></div>
+        <h2>Список продуктов</h2>
+        <div style="background: rgba(0,0,0,0.03); padding: 10px; border-radius: 10px; margin-bottom: 15px;">
+            <input type="text" id="pName" placeholder="Название (н-р, Яблоко)">
+            <input type="number" id="pCal" placeholder="Калории">
+            <input type="number" id="pPrice" placeholder="Цена">
+            <button class="main-btn" onclick="addProduct()">Добавить продукт</button>
+        </div>
+        <div id="productsList"></div>
     </div>
 
     <div id="recipes" class="page">
-        <button class="back-btn" onclick="showPage('home')">← Назад</button>
-        <h2>Рецепты</h2>
-        <div class="list-item">🥗 Салат "Цезарь"</div>
-        <div class="list-item">🍲 Овощной суп</div>
-        <div class="list-item">🍳 Омлет с сыром</div>
+        <h2>Мои Рецепты</h2>
+        <p>Тут скоро появятся твои любимые блюда!</p>
     </div>
 
     <div id="shopping" class="page">
-        <button class="back-btn" onclick="showPage('home')">← Назад</button>
         <h2>Список покупок</h2>
-        <div class="list-item"><input type="checkbox"> Молоко</div>
-        <div class="list-item"><input type="checkbox"> Хлеб</div>
-        <div class="list-item"><input type="checkbox"> Яблоки</div>
+        <p>Добавляй сюда то, что нужно купить в магазине.</p>
     </div>
 
     <script>
         let tg = window.Telegram.WebApp;
-        tg.expand(); // Расширяем на весь экран
+        tg.expand();
+
+        // Настройка кнопки "Назад" внутри Телеграма
+        tg.BackButton.onClick(() => {
+            showPage('home');
+        });
 
         function showPage(pageId) {
-            // Скрываем все страницы
-            document.querySelectorAll('.page').forEach(page => {
-                page.classList.remove('active');
-            });
-            // Показываем нужную
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
             document.getElementById(pageId).classList.add('active');
+            
+            if (pageId === 'home') {
+                tg.BackButton.hide();
+            } else {
+                tg.BackButton.show();
+            }
         }
+
+        // Логика списка продуктов
+        let products = JSON.parse(localStorage.getItem('my_products') || '[]');
+
+        function renderProducts() {
+            const list = document.getElementById('productsList');
+            list.innerHTML = '';
+            products.forEach((p, index) => {
+                list.innerHTML += `
+                    <div class="list-item">
+                        <div>
+                            <strong>${p.name}</strong><br>
+                            <small>${p.cal} ккал | ${p.price} ₽</small>
+                        </div>
+                        <div class="delete-btn" onclick="deleteProduct(${index})">Удалить</div>
+                    </div>
+                `;
+            });
+        }
+
+        function addProduct() {
+            const name = document.getElementById('pName').value;
+            const cal = document.getElementById('pCal').value;
+            const price = document.getElementById('pPrice').value;
+
+            if (name && cal && price) {
+                products.push({name, cal, price});
+                localStorage.setItem('my_products', JSON.stringify(products));
+                renderProducts();
+                // Очистка полей
+                document.getElementById('pName').value = '';
+                document.getElementById('pCal').value = '';
+                document.getElementById('pPrice').value = '';
+            }
+        }
+
+        function deleteProduct(index) {
+            products.splice(index, 1);
+            localStorage.setItem('my_products', JSON.stringify(products));
+            renderProducts();
+        }
+
+        // Запуск рендера при загрузке
+        renderProducts();
     </script>
 </body>
 </html>
